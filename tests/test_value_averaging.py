@@ -14,7 +14,7 @@ SPEC.loader.exec_module(va)
 
 class ValueAveragingTests(unittest.TestCase):
     def test_embedded_version(self):
-        self.assertEqual(va.__version__, "0.1.0")
+        self.assertEqual(va.__version__, "0.2.0")
 
     def test_periodic_rate_compounds_to_annual_rate(self):
         monthly = va.periodic_rate(0.12, 12)
@@ -84,6 +84,45 @@ class ValueAveragingTests(unittest.TestCase):
     def test_invalid_price_is_rejected(self):
         with self.assertRaises(ValueError):
             va.recommend_adjustment(100_000, 90_000, 0)
+
+
+class RegressionTests(unittest.TestCase):
+    def test_decimal_boundary(self):
+        r=va.recommend_adjustment("100.1", "100", "0.1")
+        self.assertEqual(r.recommended_units,1)
+        self.assertEqual(r.residual_deviation,0)
+
+    def test_caps_zero_and_just_below_one_lot(self):
+        self.assertEqual(va.recommend_adjustment(200,0,"0.1",contribution_cap="0.099999").recommended_units,0)
+        self.assertEqual(va.recommend_adjustment(200,0,10,contribution_cap=0).recommended_units,0)
+        self.assertEqual(va.recommend_adjustment(0,200,10,"full",sell_cap=0).recommended_units,0)
+
+    def test_inventory_and_lots(self):
+        r=va.recommend_adjustment(1000,2000,10,"full",available_units=30)
+        self.assertEqual(r.recommended_units,-30)
+        self.assertTrue(r.inventory_bound)
+        self.assertEqual(va.recommend_adjustment(1000,2000,10,"full",lot_size=100,available_units=30).recommended_units,0)
+
+    def test_missing_and_nonfinite_prices(self):
+        for price in [None,"",0,-1,float("nan"),float("inf")]:
+            with self.subTest(price=price), self.assertRaises(ValueError):
+                va.recommend_adjustment(100,0,price)
+
+    def test_invalid_inputs(self):
+        for kwargs in [dict(lot_size=1.5),dict(available_units=-1),dict(tolerance_band=1.1),dict(contribution_cap=float("nan"))]:
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                va.recommend_adjustment(100,0,10,**kwargs)
+        for n in [0,-1,1.5,float("inf")]:
+            with self.subTest(n=n), self.assertRaises(ValueError):
+                va.terminal_nominal_goal(100,0.02,n,"nominal")
+        with self.assertRaises(ValueError): va.target_value(100,200,1,12,"linear",float("nan"))
+        with self.assertRaises(ValueError): va.terminal_nominal_goal(100,float("nan"),12,"nominal")
+
+    def test_initial_value_is_fixed(self):
+        target=va.target_value(500000,1000000,6,12,"linear")
+        self.assertEqual(target,750000)
+        self.assertEqual(va.recommend_adjustment(target,700000,100).recommended_units,500)
+        self.assertEqual(va.recommend_adjustment(target,730000,100).recommended_units,200)
 
 
 if __name__ == "__main__":

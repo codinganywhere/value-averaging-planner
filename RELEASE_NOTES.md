@@ -1,5 +1,17 @@
 # Release notes
 
+## 0.2.0 — 2026-09-19
+
+- Capability-based routing; pure explanations do not require Python. Resolve scripts from the actual skill resource location.
+- Add a complete bound Apps Script native Sheets template with prepared formula rows, menu/edit-trigger extension, validation status, dashboard and a path chart.
+- Separate fixed initial market value/holdings from current valuation. Preserve reference-price snapshots.
+- Decimal trade sizing and finite/integer input validation; optional holdings-aware sell sizing. Clarify gross caps and missing-price behavior.
+- Add regression cases for purchases, sales, missing quotes, caps, precision and invalid input, plus template construction checks.
+- Preserve `--current-value` as an alias for `--initial-value`.
+- Template setup is explicit; no live spreadsheet deployment or Classic end-to-end verification is implied. Existing v0.1.0 spreadsheets need a reviewed migration.
+
+
+
 ## 0.1.0 — 2026-09-19
 
 Initial release.

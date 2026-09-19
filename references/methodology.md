@@ -37,7 +37,7 @@ Display both the original purchasing-power target and the terminal nominal targe
 
 ## 3. Target-value paths
 
-Let `V0` be current portfolio market value, `G` the terminal nominal goal, `n` total periods, and `t` the current period from 0 through `n`.
+Let `V0` be the fixed market value at the plan start (never the latest period value), `G` the terminal nominal goal, `n` total periods, and `t` the current period from 0 through `n`.
 
 ### Linear path
 
@@ -77,7 +77,7 @@ Policies:
 - `full`: trade amount is `raw_gap`; a negative amount is a sale.
 - `band`: trade only when `abs(raw_gap) / V_t` exceeds the tolerance band. Outside the band, use the full raw gap before caps.
 
-Apply a positive contribution cap to buys and a positive sell cap to the absolute value of sales. Then convert the capped amount to trade units without exceeding the cap:
+Apply a nonnegative contribution cap to buys and a nonnegative sell cap to the absolute value of sales. Then convert the capped amount to trade units without exceeding the cap:
 
 ```text
 units = sign(amount) * floor(abs(amount) / price / lot_size) * lot_size
@@ -118,3 +118,9 @@ Flag at least the following:
 - `GOOGLEFINANCE` is blank or stale;
 - target basis is unspecified;
 - historical execution price is linked to a live quote rather than stored as a value.
+
+## 7. Precision and settlement contract (0.2.0)
+
+Round generated target values to currency cents (half up). Use decimal arithmetic on original numeric strings for trade gaps, caps and unit rounding; do not floor a binary floating-point subtraction. Validate finite numbers, positive integer periods/frequency/lot sizes, nonnegative integer holdings and rates greater than -100%. Tolerance is in [0,1]. Zero caps prohibit the relevant trade; blank caps are unlimited. Caps cover gross notional, not fees. Optional available units further limit sales. Target, pre-trade and post-trade values mean security value, excluding cash.
+
+The native template assumes trade settlement and cash dividends flow externally. Net external contribution is actual units × actual price + fees − dividends; dividend reinvestment is represented by both dividends and a purchase. No cash balance is modeled. Initial historical net contribution is optional; show cumulative contribution as unknown if absent. Fix V0 and initial holdings when the plan starts. Replanning creates a new plan/version, not a silent rewrite of past targets.

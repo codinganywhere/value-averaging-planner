@@ -1,135 +1,30 @@
-# Native Google Sheets design
+# Native Google Sheets template 0.2.0
 
-Read this file before creating or changing the plan spreadsheet.
+## Source and installation
 
-## Workbook topology
+`assets/GoogleSheetsTemplate.gs` is the authoritative complete native implementation. It contains settings, quote formulas, all ledger formulas, a dashboard, validation status, formatting, warning protections and row extension. Follow README installation when Apps Script deployment is unavailable. Never claim a Sheet was created merely because the template file exists. Use available Sheets tools and the platform creation workflow when authorized, translating the bundled formulas faithfully.
 
-Use one Google Spreadsheet with these tabs in order:
+## Tabs and inputs
 
-1. `投資儀表板`
-2. `策略設定`
-3. `每期紀錄`
-4. `行情資料`
-5. `計算區`
+One workbook: 投資儀表板 / 策略設定 / 每期紀錄 / 行情資料 / 計算區.
+Settings B2 ticker, B3 exchange, B4 fixed start date, B5 **fixed initial value V0**, B6 terminal goal, B7 basis, B8 periods, B9 frequency, B10 nominal path growth, B11 inflation, B12 path type, B13 sell policy, B14 gross buy cap, B15 gross sell cap, B16 tolerance, B17 lot, B18 manual live quote, B19 **initial units**, B20 optional historic net contribution, B21 fixed plan ID, B22 version, B23 settlement convention.
 
-Keep the dashboard in the same spreadsheet. This avoids cross-file permissions and `IMPORTRANGE`, and lets manual entries and AI updates recalculate the same outputs.
+Ledger editable columns: B period (1..n), C valuation date, D fixed reference quote, E execution price, L signed actual units, M fees, N cash dividends, T notes. All other columns are formulas. Empty L means no trade, not acceptance of the recommendation. Periods must increase; dates must be nondecreasing. Duplicate periods and overselling block the row. Input rows may have gaps; formulas carry forward the previous valid holdings, but prior invalid nonempty rows block following rows until corrected.
 
-## Strategy settings
+A record is active when C is populated. D is a manually entered/snapshotted value, NEVER a live historical formula. E is required for nonzero actual trades. U contains the row validation result. Invalid/missing-price rows show a message and suppress recommendations and accounting; they do not produce a fabricated zero-price result. Correct invalid rows before entering subsequent ones.
 
-Use columns A:C for label, value, and guidance.
+## Automatic formulas
 
-| Cell | Label | Type |
-| --- | --- | --- |
-| B2 | ETF代號 | text, for example `0050` |
-| B3 | 交易所代號 | text, for example `TPE` |
-| B4 | 起始日期 | date |
-| B5 | 目前投資組合市值 | currency |
-| B6 | 目標金額 | currency |
-| B7 | 目標金額基準 | dropdown: `today_money`, `nominal` |
-| B8 | 投資期數 | positive integer |
-| B9 | 每年期數 | positive integer, default 12 |
-| B10 | 年化路徑成長率 | percentage |
-| B11 | 年化通膨率 | percentage |
-| B12 | 目標路徑 | dropdown: `linear`, `growth_adjusted` |
-| B13 | 賣出政策 | dropdown: `buy_only`, `full`, `band` |
-| B14 | 單期投入上限 | currency or blank |
-| B15 | 單期賣出上限 | currency or blank |
-| B16 | 容忍區間 | percentage, used by `band` |
-| B17 | 最小交易單位 | positive integer |
-| B18 | 手動價格覆寫 | currency or blank |
+120 rows are prepared initially. Enter the next empty prepared row without copying formulas or calling AI. The bound `onEdit` trigger extends near the end, and the menu can explicitly add 120 rows. AI/API edits do not fire the user edit trigger: check capacity before append and run the extension or copy the exact relative formulas first. Do not insert, delete or sort ledger rows. Warning protections are not hard access controls.
 
-Do not combine expected return and inflation. Convert both geometrically when periodic values are needed.
+`rowFormulas(row)` defines all calculated columns. Targets use the fixed V0 and terminal goal, rounding to cents. Integer micro-currency unit division avoids floating-point lot-boundary errors for supported prices (maximum 6 decimals). The supported amount ceiling is 1 billion per target/portfolio/trade. Outside this range, block and require a different numeric implementation.
 
-## Market data
+## Cash-flow convention
 
-Store the active reference price in `行情資料!B2`. Prefer the manual override when supplied:
+Portfolio value is the security only. All buy/sell settlement is treated as external, and dividends are distributed externally. O = actual units × execution price + fees − dividends. To reinvest a dividend, record both its cash amount and the actual bought units. Do not add dividend value twice. R remains blank when B20 is unknown. No cash-reserve balance or XIRR is implemented.
 
-```gs
-=IF('策略設定'!B18<>"",'策略設定'!B18,IFERROR(GOOGLEFINANCE('策略設定'!B3&":"&'策略設定'!B2,"price"),""))
-```
+## Verification and migration
 
-Optional delay and last-trade metadata:
+Test purchases, sales, caps (including zero), missing prices, empty rows, duplicate periods, negative holdings, first-row initial positions and next-row carry-forward. Inspect formula errors and chart after native creation. Local construction tests are not native Sheets recalculation tests.
 
-```gs
-=IFERROR(GOOGLEFINANCE('策略設定'!B3&":"&'策略設定'!B2,"datadelay"),"")
-```
-
-```gs
-=IFERROR(GOOGLEFINANCE('策略設定'!B3&":"&'策略設定'!B2,"tradetime"),"")
-```
-
-Show a visible `價格缺失` warning when the active reference price is blank or nonpositive.
-
-## Period record table
-
-Use one row per valuation and trade decision. Do not insert blank rows inside the record table.
-
-| Column | Field | Ownership |
-| --- | --- | --- |
-| A | 紀錄ID | calculated |
-| B | 投資期數 | calculated or validated input |
-| C | 評價日期 | input |
-| D | 參考價格 | calculated reference or fixed snapshot |
-| E | 實際成交價格 | input |
-| F | 期初持股 | calculated |
-| G | 本期目標市值 | calculated |
-| H | 交易前市值 | calculated |
-| I | 目標差額 | calculated |
-| J | 限制後建議金額 | calculated |
-| K | 建議交易股數 | calculated |
-| L | 實際交易股數 | input; negative means sale |
-| M | 手續費與交易稅 | input or calculated |
-| N | 股息收入 | input |
-| O | 本期外部淨現金流 | calculated |
-| P | 期末持股 | calculated |
-| Q | 期末市值 | calculated |
-| R | 累計淨投入 | calculated |
-| S | 期末路徑偏差 | calculated |
-| T | 備註 | input |
-
-Use formula columns or a protected calculation tab so a newly appended input row receives formulas automatically. Test blank rows, first row, a purchase, a sale, a cap-binding purchase, and a missing quote before rollout.
-
-For a past valuation date, a reference closing price may use:
-
-```gs
-=IF(C2="","",IF(C2=TODAY(),'行情資料'!$B$2,IFERROR(INDEX(GOOGLEFINANCE('策略設定'!$B$3&":"&'策略設定'!$B$2,"close",C2),2,2),"")))
-```
-
-Do not use that reference field as the actual execution price. Actual prices remain user-entered or fixed values.
-
-## Dashboard
-
-Put the dashboard first and keep it output-focused. Show:
-
-- active ticker, valuation date, active reference price, price source, and delay/status;
-- current holdings and estimated market value;
-- current target value, raw gap, constrained recommendation, units, and residual deviation;
-- terminal goal in both the user's selected basis and nominal currency;
-- cumulative buys, sale proceeds, fees/taxes, dividends, net contributions, and current value;
-- path completion percentage and an explicit missing-input or infeasibility warning.
-
-Charts:
-
-1. target value versus actual market value by period;
-2. periodic net contribution;
-3. cumulative net contribution versus portfolio market value.
-
-## Protections and validation
-
-- Use a distinct input style for editable cells.
-- Protect formulas, the dashboard output range, `行情資料`, and `計算區`.
-- Validate dropdowns and nonnegative limits; allow negative values only where a sale is meaningful.
-- Prevent actual sale units from exceeding available units.
-- Use a stable record ID and check period/date duplicates before appending.
-- Re-read the destination row before writing. Verify the saved row and headline dashboard outputs afterward.
-
-## AI append workflow
-
-1. Resolve the exact Spreadsheet ID and visible tab names.
-2. Read settings and the final bounded record rows.
-3. Detect a duplicate record ID or period/date.
-4. Obtain the reference quote; never invent a missing value.
-5. Run the deterministic period calculation.
-6. Append input values without overwriting calculated columns.
-7. Read back the row and dashboard values.
-8. Report the recommendation, constraints, residual deviation, and price source.
+Existing v0.1.0 sheets must be copied before migration. Confirm fixed V0, initial units, historic net contribution and snapshot history. Never relabel an updating current-value cell as V0 without confirming the original starting value. Re-read destination inputs and check period IDs before writing. Verify saved inputs, U status and headline outputs after append. Installing/updating this Skill alone changes no user spreadsheets.

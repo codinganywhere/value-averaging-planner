@@ -2,7 +2,7 @@
 
 `value-averaging-planner` is a Codex/ChatGPT skill for designing, calculating, reviewing, and maintaining inflation-aware value-averaging plans for ETFs or diversified portfolios.
 
-It uses one native Google Sheet as the user-facing tracker. The same spreadsheet contains the dashboard, assumptions, period records, reference quotes, and calculations. A deterministic Python script provides reproducible planning, current-period recommendations, scenario analysis, and formula cross-checks.
+It uses one native Google Sheet as the user-facing tracker. The same spreadsheet contains the dashboard, assumptions, period records, reference quotes, and calculations. A deterministic Python script provides reproducible planning, current-period recommendations, and formula cross-checks.
 
 ## Main capabilities
 
@@ -18,7 +18,7 @@ It uses one native Google Sheet as the user-facing tracker. The same spreadsheet
 
 ## Installation
 
-Copy this repository's `value-averaging-planner` folder into a supported skills directory, or install the repository through the skill installation workflow available in your Codex/ChatGPT environment.
+The repository root is the skill package (it contains SKILL.md). Install it through your environment's personal-skill installation workflow. A local Codex installation does not prove that another ChatGPT conversation can access its files. Verify actual skill/script access in each environment.
 
 The Google Sheets workflow requires a connected Google Drive/Google Sheets capability with permission to create or edit the target spreadsheet.
 
@@ -43,7 +43,7 @@ Rates are decimals: `0.06` means 6%.
 ```bash
 python scripts/value_averaging.py plan \
   --goal 3000000 \
-  --current-value 500000 \
+  --initial-value 500000 \
   --periods 120 \
   --annual-inflation 0.02 \
   --goal-basis today_money \
@@ -81,4 +81,20 @@ tests/test_value_averaging.py    Calculation tests
 
 ## Version
 
-Current version: `0.1.0`. See [RELEASE_NOTES.md](RELEASE_NOTES.md).
+Current version: `0.2.0`. See [RELEASE_NOTES.md](RELEASE_NOTES.md).
+
+## Native Google Sheets template (0.2.0)
+
+1. Create a blank Google spreadsheet. Open Extensions → Apps Script.
+2. Paste `assets/GoogleSheetsTemplate.gs` into the bound project, save, and run `createValueAveragingTemplate`. Authorize spreadsheet access if prompted.
+3. Complete blue setting cells, including the fixed start date/value and initial holdings. Optional historical net contribution must remain blank if unknown.
+4. In `每期紀錄`, enter period B, date C, and a fixed reference-price snapshot D in the next prepared row. Enter actual price E, signed actual units L, fees M and cash dividends N after a trade. Blank actual units mean zero trades; suggestions never become trades automatically.
+5. Do not insert/delete/sort ledger rows. There are initially 120 prepared rows. The bound edit trigger attempts to add another 120 near the end; the `價值平均投資` menu provides explicit extension if needed. New rows within the prepared range calculate without AI or running Python.
+
+The template is native Google Sheets formulas, not an Excel approximation. Installing the Skill does not deploy this script or create a live spreadsheet. Formula protections show warnings, not access-control enforcement. Apps Script installation is a one-time step; Python is optional for cross-checking.
+
+`GOOGLEFINANCE` appears only on the quote tab. Copy reference prices as VALUES into the ledger; historical rows do not change with live quotes. Quote availability is not guaranteed. The ledger is single-security, excludes broker cash and assumes all trade settlement is external. Net contribution = buys − sales + fees − cash dividends. Dividend reinvestment is recorded as both a dividend and actual purchased units. An initial cost figure must not be substituted for unknown historical net contributions.
+
+Amounts are in one currency. The Python path rounds target amounts to two decimal places; adjustments use Decimal arithmetic. The native template supports prices up to six decimals and portfolio/target/trade amounts up to 1 billion currency units. Caps limit gross trade notional, excluding fees. `--initial-value` is canonical; `--current-value` remains a deprecated alias meaning the same fixed initial value.
+
+Validation: run `python -m unittest discover -s tests -v` and `node tests/test_template.cjs`. Local tests do not certify Classic access or Google Sheets server recalculation. No historical backtest, XIRR, cash reserve budgeting or automatic brokerage execution is provided.
