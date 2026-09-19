@@ -1,0 +1,8 @@
+interface:
+  display_name: "Value Averaging Planner"
+  short_description: "Plan inflation-aware ETF value-averaging paths"
+  brand_color: "#0F766E"
+  default_prompt: "Use $value-averaging-planner to create or update my inflation-aware ETF value-averaging plan in Google Sheets."
+
+policy:
+  allow_implicit_invocation: true
