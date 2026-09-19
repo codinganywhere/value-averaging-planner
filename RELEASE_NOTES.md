@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.2.1 — 2026-09-19
+
+- Add task-specific opening plans and concrete user-visible progress at stage transitions.
+- Add truthful status, blocker and completion reporting, with examples for planning, period updates, calculations and audits.
+- Distinguish assistant progress messages from application activity indicators; no fabricated percentages or execution claims.
+- Calculation behavior and template formulas are unchanged.
+
 ## 0.2.0 — 2026-09-19
 
 - Capability-based routing; pure explanations do not require Python. Resolve scripts from the actual skill resource location.

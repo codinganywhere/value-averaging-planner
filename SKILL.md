@@ -2,13 +2,21 @@
 name: value-averaging-planner
 description: Plan, calculate, review, and maintain inflation-aware value-averaging investment plans in native Google Sheets. Use for ETF target-value paths, periodic buy or sell recommendations, contribution limits, portfolio-path reviews or audits of value-averaging spreadsheet logic. Do not use for general stock picking, price prediction, or short-term trading signals.
 metadata:
-  version: "0.2.0"
+  version: "0.2.1"
   short-description: Inflation-aware ETF value-averaging plans
 ---
 
 # Value Averaging Planner
 
 Build decisions from a predetermined portfolio-value path. Keep routine inputs and transparent calculations in one native Google Sheet; use the deterministic script for plan generation, difficult constraints, scenario work, and independent checks.
+
+## User-visible plan and progress (required)
+
+Before substantive tool work, acknowledge the requested outcome in the user's language and show a short task-specific plan. Select only applicable stages from `references/progress-reporting.md`; do not recite every possible step. For a pure explanation, answer directly or give a one-sentence outline; do not force a long workflow.
+
+Keep the user informed through visible progress messages, not solely tool activity labels. Use a plan/status tool when available, but also write concise user-facing updates. Report the stage, concrete object being processed (ticker, period, tab/range or calculation), verified findings, and the next action. Show completed / in progress / pending / blocked truthfully. At stage transitions or roughly 30–60 seconds during active work, give a useful update when execution control is available; report immediately after a long blocking call returns. Never invent a completion percentage, elapsed-time estimate, quote, tool run, write, or verification. Do not expose private reasoning, credentials or internal infrastructure.
+
+If blocked, identify the exact missing input/capability, completed work and the smallest necessary user action. Continue independent authorized work where possible. Finish with delivered results, actual validation, links when applicable, and any pending/blocked items. A prepared template is not a deployed Sheet; a submitted write is not a verified write. These instructions govern assistant messages; they do not customize the application's built-in spinner or guarantee live updates inside a blocking tool call.
 
 ## Capability check and resource resolution
 

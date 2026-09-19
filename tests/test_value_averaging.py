@@ -14,7 +14,7 @@ SPEC.loader.exec_module(va)
 
 class ValueAveragingTests(unittest.TestCase):
     def test_embedded_version(self):
-        self.assertEqual(va.__version__, "0.2.0")
+        self.assertEqual(va.__version__, "0.2.1")
 
     def test_periodic_rate_compounds_to_annual_rate(self):
         monthly = va.periodic_rate(0.12, 12)

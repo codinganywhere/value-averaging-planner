@@ -1,8 +1,8 @@
-/** Value Averaging Planner 0.2.0. Bound Apps Script, no network/API credentials.
+/** Value Averaging Planner 0.2.1. Bound Apps Script, no network/API credentials.
  * Run createValueAveragingTemplate once in a BLANK Google spreadsheet.
  * Native formulas calculate new records; onEdit/menu extends prepared rows.
  */
-const VA_VERSION = '0.2.0';
+const VA_VERSION = '0.2.1';
 const VA_TABS = ['投資儀表板','策略設定','每期紀錄','行情資料','計算區'];
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('價值平均投資').addItem('建立空白模板','createValueAveragingTemplate').addItem('增加120期空白列','extendValueAveragingRows').addToUi();

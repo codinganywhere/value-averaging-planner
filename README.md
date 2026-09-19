@@ -81,7 +81,7 @@ tests/test_value_averaging.py    Calculation tests
 
 ## Version
 
-Current version: `0.2.0`. See [RELEASE_NOTES.md](RELEASE_NOTES.md).
+Current version: `0.2.1`. See [RELEASE_NOTES.md](RELEASE_NOTES.md).
 
 ## Native Google Sheets template (0.2.0)
 
@@ -98,3 +98,7 @@ The template is native Google Sheets formulas, not an Excel approximation. Insta
 Amounts are in one currency. The Python path rounds target amounts to two decimal places; adjustments use Decimal arithmetic. The native template supports prices up to six decimals and portfolio/target/trade amounts up to 1 billion currency units. Caps limit gross trade notional, excluding fees. `--initial-value` is canonical; `--current-value` remains a deprecated alias meaning the same fixed initial value.
 
 Validation: run `python -m unittest discover -s tests -v` and `node tests/test_template.cjs`. Local tests do not certify Classic access or Google Sheets server recalculation. No historical backtest, XIRR, cash reserve budgeting or automatic brokerage execution is provided.
+
+## Visible progress (0.2.1)
+
+The Skill starts substantial tasks with an applicable step list and reports verified stage progress in the user's language. Updates identify the current calculation, period, sheet or range; explain blockers; and distinguish prepared, written and verified results. Pure explanations remain concise. Progress messages supplement the app's activity display; the Skill cannot replace the app's built-in spinner or emit messages while execution is blocked.

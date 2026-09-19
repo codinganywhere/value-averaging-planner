@@ -14,7 +14,7 @@ from typing import Literal
 GoalBasis = Literal["nominal", "today_money"]
 PathType = Literal["linear", "growth_adjusted"]
 SellPolicy = Literal["buy_only", "full", "band"]
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 def number(value, name):
